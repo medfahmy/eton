@@ -1,9 +1,21 @@
+use crate::errors::CustomError;
 use axum::{
+    extract::Path,
+    http::StatusCode,
     routing::{delete, get, post, put},
-    Router,
+    Extension, Json, Router,
 };
+use serde::{Deserialize, Serialize};
+use sqlx::{query, query_as, FromRow, PgPool};
 use tracing::info;
 
+pub fn create_router() -> Router {
+    Router::new()
+        .route("/register", post(register))
+        .route("/login", post(login))
+}
+
+#[derive(Deserialize, Serialize, FromRow)]
 struct User {
     id: i32,
     username: String,
@@ -11,22 +23,32 @@ struct User {
     password: String,
 }
 
-pub fn create_router() -> Router {
-    Router::new().route("/", get(query_users).post(create_user))
+#[derive(Deserialize, Serialize, FromRow)]
+struct RegisterInput {
+    username: String,
+    email: String,
+    password: String,
+    confirm_password: String,
 }
 
-async fn query_users() {
-    info!("query users")
+#[derive(Deserialize, Serialize, FromRow)]
+struct LoginInput {
+    username: String,
+    password: String,
 }
 
-async fn create_user() {
-    info!("create user")
+async fn register() {
+    info!("register")
 }
 
-async fn update_user() {
-    info!("update user")
+async fn login() {
+    info!("login")
 }
 
-async fn delete_user() {
-    info!("update user")
+async fn logout() {
+    info!("logout")
+}
+
+async fn refresh() {
+    info!("refresh")
 }

@@ -1,10 +1,21 @@
 use crate::errors::CustomError;
-use axum::extract::Path;
-use axum::http::StatusCode;
-use axum::routing::get;
-use axum::{Extension, Json, Router};
+use axum::{
+    extract::Path,
+    http::StatusCode,
+    routing::{delete, get, post, put},
+    Extension, Json, Router,
+};
 use serde::{Deserialize, Serialize};
 use sqlx::{query, query_as, FromRow, PgPool};
+
+pub fn create_router() -> Router {
+    Router::new()
+        .route("/", get(query_all))
+        .route("/", post(create))
+        .route("/:id", get(query_by_id))
+        .route("/:id", put(update))
+        .route("/:id", delete(remove))
+}
 
 #[derive(Deserialize, Serialize, FromRow)]
 struct Note {
@@ -19,19 +30,7 @@ struct NewNote {
     content: String,
 }
 
-pub fn create_router() -> Router {
-    Router::new()
-        .route("/", get(query_notes).post(create_note))
-        .route("/status", get(async || StatusCode::OK))
-        .route(
-            "/:id",
-            get(query_note_by_id)
-                .put(update_note_by_id)
-                .delete(delete_note_by_id),
-        )
-}
-
-async fn query_notes(Extension(pool): Extension<PgPool>) -> (StatusCode, Json<Vec<Note>>) {
+async fn query_all(Extension(pool): Extension<PgPool>) -> (StatusCode, Json<Vec<Note>>) {
     let notes = query_as!(Note, "select * from notes")
         .fetch_all(&pool)
         .await
@@ -40,7 +39,7 @@ async fn query_notes(Extension(pool): Extension<PgPool>) -> (StatusCode, Json<Ve
     (StatusCode::OK, Json(notes))
 }
 
-async fn query_note_by_id(
+async fn query_by_id(
     Extension(pool): Extension<PgPool>,
     Path(id): Path<i32>,
 ) -> Result<Json<Note>, CustomError> {
@@ -52,7 +51,7 @@ async fn query_note_by_id(
     Ok(Json(note))
 }
 
-async fn create_note(
+async fn create(
     Json(note): Json<NewNote>,
     Extension(pool): Extension<PgPool>,
 ) -> Result<(StatusCode, Json<NewNote>), CustomError> {
@@ -72,7 +71,7 @@ async fn create_note(
     Ok((StatusCode::CREATED, Json(note)))
 }
 
-async fn update_note_by_id(
+async fn update(
     Extension(pool): Extension<PgPool>,
     Path(id): Path<i32>,
     Json(note): Json<NewNote>,
@@ -95,7 +94,7 @@ async fn update_note_by_id(
     Ok((StatusCode::OK, Json(note)))
 }
 
-async fn delete_note_by_id(
+async fn remove(
     Extension(pool): Extension<PgPool>,
     Path(id): Path<i32>,
 ) -> Result<StatusCode, CustomError> {

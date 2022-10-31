@@ -39,6 +39,7 @@ async fn main() {
     let addr: SocketAddr = "127.0.0.1:8080"
         .parse()
         .expect("parsing server address failed");
+
     info!("listening on {}", addr);
 
     Server::bind(&addr)
