@@ -24,7 +24,7 @@ struct User {
 }
 
 #[derive(Deserialize, Serialize, FromRow)]
-struct RegisterInput {
+struct SignUpData {
     username: String,
     email: String,
     password: String,

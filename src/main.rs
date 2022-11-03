@@ -25,7 +25,7 @@ async fn main() {
     let user_router = user::create_router();
     let note_router = note::create_router();
 
-    let app = Router::new()
+    let router = Router::new()
         .nest("/users", user_router)
         .nest("/notes", note_router)
         .layer(Extension(pool))
